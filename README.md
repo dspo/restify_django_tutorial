@@ -17,7 +17,7 @@
 REST是Representational State Transfer的缩写（不要试图去翻译它，你会发现三个字都认识，但合在一起就不知道它说啥了）。
 要理解REST，首先在明确这几点：
 * REST不是平台，不是软件，而是一套规范、一套倡议。就如同HTTP是一套规范，Google Python Code Style、PEP8、阿里Java开发规范一样是一套倡议。
-* URL定位资源，HTTP动词（GET,POST,DELETE,DETC）描述操作（@lvony ）。用我们熟悉的Python HTTP请求库requests来举例，requests.get('http://some_books_tore.com/books/1')，可以猜测它是访问序号为1的book（资源），并采用get方法取回（动作）；requests.delete('http://some_books_tore.com/books/1')，则猜测它可能是访问序号为1的book，并删除它。
+* URL定位资源，HTTP动词（GET,POST,DELETE,DETC）描述操作（@lvony ）。用我们熟悉的Python HTTP请求库requests来举例，requests.get('http://some_books_tore.com/books/1')，可以猜测它是访问序号为1的book（资源），并采用get方法取回（动作）；requests.delete('http://some_books_tore.com/books/1')，则猜测它可能是访问序号为1的book，并删除它。  
 ![REST API](img/00.png)
 
 * Server和Client之间传递某资源的一个表现形式，比如用JSON，XML传输文本，或者用JPG，WebP传输图片等。当然还可以压缩HTTP传输时的数据（on-wire data compression）。
@@ -207,14 +207,18 @@ urlpatterns = [
 > python manage.py createsuperuser
 ```
 创建好超级用户后，可以登录用用后台http://127.0.0.1:8000/admin/ ，创建其他用户。  
+
 ![admin的后台页](img/01.png)  
+
 创建完用户后，再添加polls和choices。  
+
 ![添加的choice](img/02.png)  
 
 ## 查看API
 打开浏览器，访问http://127.0.0.1:8000/api-polls/
 可以看到你刚刚创建的poll
-![添加的choisce](img/03.png)
+
+![添加的choisce](img/03.png)  
 
 ## 为什么需要DjangoRESTFramework
 我们可以用原生的Django编写API，为什么还要DjangoRESTFramework呢？因为，大多时候，请求控制（认证、权限、频率）、序列化等，都是在做一些重复的工作，DRF大大简化了API的编写。
@@ -306,9 +310,12 @@ True                      )
 <Poll: Python是不是世界上最好的编程语言？>
 ```
 登录后台，可以看到，已经多了一条poll记录。
+
 ![多了一条poll记录](img/04.png)  
-可以尝试使用模型序列化器为这个poll添加choice。  
-![多了一条poll记录](img/05.png)  
+
+可以尝试使用模型序列化器为这个poll添加choice。    
+
+![多了一条poll记录](img/05.png)    
 
 ## 项目代码
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b2
