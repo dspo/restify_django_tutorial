@@ -310,6 +310,9 @@ True                      )
 可以尝试使用模型序列化器为这个poll添加choice。  
 ![多了一条poll记录](img/05.png)  
 
+## 项目代码
+目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b2
+
 # Step-last：后记
 ## 系列文章风格
 系列文章会以低零基础、手把手、逐行解释、连续完整、资源指向的风格进行写作。
