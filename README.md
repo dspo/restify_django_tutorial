@@ -161,9 +161,8 @@ admin.site.register(Poll)
 admin.site.register(Choice)
 ```
 ## 项目代码
-目前为止的项目代码在https://gitee.com/pythonista/rest_django_tutorial/tags的 Tag-1-创建项目和应用
+目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b1
 
-# Step-3：使用原生Django编写API
 # Step-last：后记
 ## 系列文章风格
 系列文章会以低零基础、手把手、逐行解释、连续完整、资源指向的风格进行写作。
