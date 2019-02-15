@@ -208,11 +208,11 @@ urlpatterns = [
 ```
 创建好超级用户后，可以登录用用后台http://127.0.0.1:8000/admin/ ，创建其他用户。  
 
-![admin-backend](img/01.png)  
+![ADMIN](img/01.png)  
 
 创建完用户后，再添加polls和choices。  
 
-![added-choice](img/02.png)  
+![ADDEDCHOICE](/img/02.png)  
 
 ## 查看API
 打开浏览器，访问http://127.0.0.1:8000/api-polls/
