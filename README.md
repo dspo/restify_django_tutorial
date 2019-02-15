@@ -206,10 +206,10 @@ urlpatterns = [
 ```bash
 > python manage.py createsuperuser
 ```
-创建好超级用户后，可以登录用用后台http://127.0.0.1:8000/admin/，创建其他用户。
-![admin的后台页](img/01.png)
-创建完用户后，再添加polls和choices。
-![添加的choisce](img/02.png)
+创建好超级用户后，可以登录用用后台http://127.0.0.1:8000/admin/，创建其他用户。  
+![admin的后台页](img/01.png)  
+创建完用户后，再添加polls和choices。  
+![添加的choice](img/02.png)  
 
 ## 查看API
 打开浏览器，访问http://127.0.0.1:8000/api-polls/
