@@ -1,7 +1,7 @@
 # rest_django_tutorial
-
+![LOGO](img/logo.jpg)  
 # 系列文章介绍
-本系列文章
+本系列文章将详细介绍将Django官方引导教程中的投票项目改写为RESTful网络服务。Django官方教程地址https://docs.djangoproject.com/zh-hans/2.1/intro/tutorial01/
 
 
 # Step-1：RESTful与Django
@@ -18,7 +18,7 @@ REST是Representational State Transfer的缩写（不要试图去翻译它，你
 要理解REST，首先在明确这几点：
 * REST不是平台，不是软件，而是一套规范、一套倡议。就如同HTTP是一套规范，Google Python Code Style、PEP8、阿里Java开发规范一样是一套倡议。
 * URL定位资源，HTTP动词（GET,POST,DELETE,DETC）描述操作（@lvony ）。用我们熟悉的Python HTTP请求库requests来举例，requests.get('http://some_books_tore.com/books/1')，可以猜测它是访问序号为1的book（资源），并采用get方法取回（动作）；requests.delete('http://some_books_tore.com/books/1')，则猜测它可能是访问序号为1的book，并删除它。
-![aee1dcc7aac6eea6fdfee491eb23c3aa.png](en-resource://database/1653:1)
+![REST API](img/00.png)
 
 * Server和Client之间传递某资源的一个表现形式，比如用JSON，XML传输文本，或者用JPG，WebP传输图片等。当然还可以压缩HTTP传输时的数据（on-wire data compression）。
 * 用 HTTP Status Code传递Server的状态信息。比如最常用的 200 表示成功，500 表示Server内部错误等。
@@ -163,6 +163,153 @@ admin.site.register(Choice)
 ## 项目代码
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b1
 
+# Step-3：使用原生Django编写API
+我们设计两个API，用以返回JSON格式的数据.  
+• /polls/       GETs list of Poll  
+• /polls/<id>/  GETs data of a specific Poll  
+## 编写视图
+```python
+# in polls/views.py
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from .models import Poll
+
+
+def polls_list(request):
+    MAX_OBJECTS = 20
+    polls = Poll.objects.all()[:MAX_OBJECTS]  # 从Poll模型（对应数据库中的表）中取出前20条记录
+    data = {"results": list(polls.values("question", "created_by__username", "pub_date"))}  # 以dict形式组织数据
+    return JsonResponse(data)  # JsonResponse与Django的HttpResponse类似，但它响应的content-type=application/json.
+
+
+def polls_detail(request, pk):
+    poll = get_object_or_404(Poll, pk=pk)  # 获取对象实例或返回404状态
+    data = {"results": {
+        "question": poll.question,
+        "created_by": poll.created_by.username,
+        "pub_date": poll.pub_date
+    }}
+    return JsonResponse(data)
+```
+进行url分发
+```python
+from django.urls import path
+from .views import polls_list, polls_detail
+
+
+urlpatterns = [
+    path("polls/", polls_list, name="polls_list"),
+    path("polls/<int:pk>/", polls_detail, name="polls_detail"),
+]
+```
+## 创建用户
+```bash
+> python manage.py createsuperuser
+```
+创建好超级用户后，可以登录用用后台http://127.0.0.1:8000/admin/，创建其他用户。
+![admin的后台页](img/01.png)
+创建完用户后，再添加polls和choices。
+![添加的choisce](img/02.png)
+
+## 查看API
+打开浏览器，访问http://127.0.0.1:8000/api-polls/
+可以看到你刚刚创建的poll
+![添加的choisce](img/03.png)
+
+## 为什么需要DjangoRESTFramework
+我们可以用原生的Django编写API，为什么还要DjangoRESTFramework呢？因为，大多时候，请求控制（认证、权限、频率）、序列化等，都是在做一些重复的工作，DRF大大简化了API的编写。
+
+# Step-4：序列化与反序列化
+## 什么是序列化与反序列化
+serialization and deserialization 我们称为序列化与反序列化。
+序列化 (Serialization)是将对象的状态信息转换为可以存储或传输的形式的过程。在序列化期间，对象将其当前状态写入到临时或持久性存储区。以后，可以通过从存储区中读取或反序列化对象的状态，重新创建该对象。
+我们把JSON这样的支持取数操作的数据称为结构数据，把bytes、string这样的不支持取数操作的数据称非结构数据。从非结构数据向结构数据转化称为反序列化；从结构数据向非结构数据的转化，称为序列化。
+显然，Django的Model的实例是一种结构数据，它保存了结构化的信息。这种结构化的信息无法被其他组件使用（比如你让vue app来读Django的Model就是不可能的），所以我们要将其序列化，再传给其他组件或用户。vue从前端传进来信息，是靠url表达，url也是一串字符串而已，Djagno 的Model无法从一串字符串中拿到要增删改查的信息，所以外部信息进来时，要反序列化。
+我们的RESTful API能够在前后端打交道，就必须有序列化和反序列化的能力。序列化与反序列化用JSON来表达。
+
+## 编写序列化器
+```python
+from rest_framework import serializers
+
+from .models import Poll, Choice, Vote
+
+
+class VoteSerializer(serializers.ModelSerializer):
+    # 继承于serializers.ModelSerializer（模型序列化器）
+    # 用以对模型的字段进行序列化
+    class Meta:
+        model = Vote  # 指定要序列化的模型
+        fields = '__all__'  # 指定要序列化的字段，这里序列化所有字段
+
+
+class ChoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Choice
+        fields = '__all__'
+    
+    votes = VoteSerializer(many=True, required=False)  # 序列化器的嵌套
+
+
+class PollSerializer(serializers.ModelSerializer):
+    choices = ChoiceSerializer(many=True, read_only=True, required=False)
+
+    class Meta:
+        model = Poll
+        fields = '__all__'
+```
+代码解释：
+class ChoiceSerializer中，使用了序列化器的嵌套（即一个序列化器中包含另一个序列化器的实例作为此序列化器的字段）。Vote模型和Choice模型有关联关系，对有关联关系的模型进行序列化，称为序列化关系模型，或称为关系模型的序列化。关系模型的序列化，必须有方法来描述关系。DjangoRESTFramework提供了五种描述关系的办法（这里说成“办法”，而不说成方法，以免跟函数方法的“方法”混淆）。
+* 用主键描述关系；
+* 用唯一性字段描述关系；
+* 用实体间的超链接描述关系；
+* 用关系的嵌套描述关系；
+* 用开发者自定义的方式描述关系。  
+
+此处用的是第4种办法,用嵌套描述关系。Choice模型中有两个字段，
+```python
+poll = models.ForeignKey(Poll, related_name='choices', on_delete=models.CASCADE)
+choice_text = models.CharField(max_length=100)
+```
+其中choice_text，作为表中的记录来理解，可以理解为字符串；作为一个Python对象来理解，是一个models.CharField的实例。  
+poll，作为表中的记录来理解，可以理解为一个外键，实际上，在数据库中，记录的值是Poll对应的表中的记录的主键的值。但是，作为一个Python对象，不能把它理解为一个具体的值，而应该理解为一个Poll类的实例。这很重要。poll是一个模型的实例，所以可以序列化，所以可以用嵌套来描述这种关联关系，所以PollSerializer中的choices字段，是一个序列化器的实例。
+
+## 一个模型序列化器能为我们做什么呢？
+一个模型序列化器为我们提供了许多方法，如以下几个重要方法：  
+* .is_valid(self, ..) 方法，当对模型进行create/update操作时，它能检查提交的数据的有效性。
+instance.
+* .save(self, ..) 方法，它能够将模型实例中的数据保存到表中。
+* .create(self, validated_data, ..)方法，能够创建模型实例。可以重写这个方法以实现自定义的 create 行为。
+* .update(self, instance, validated_data, ..)方法，可以更新模型实例。可以重写这个方法以实现自定义的 update 行为。
+
+## 使用模型序列化器操作模型
+```python
+# 进入Django Shell
+> python manage.py shell
+(InteractiveConsole)
+>>> from polls.serializers import PollSerializer
+>>> from polls.models import Poll
+# 实例化一个模型序列化器
+>>> poll_serializer = PollSerializer(data={'question': 'Python是不是最好的编程语言？', 'created_by': 1 })
+# 检查数据的有效性
+>>> poll_serializer.is_valid()
+True
+# 保存
+>>> poll = poll_serializer.save()
+>>> poll.pk
+2
+# 修改记录
+>>> poll_serializer = PollSerializer(instance=poll, data={'question': 'Python是不是世界上最好的编程 语言？', 'created_by': 1 }) )
+>>> poll_serializer.is_valid()
+True                      )
+>>> poll = poll_serializer.save()
+>>> poll
+<Poll: Python是不是世界上最好的编程语言？>
+```
+登录后台，可以看到，已经多了一条poll记录。
+![多了一条poll记录](img/04.png)  
+可以尝试使用模型序列化器为这个poll添加choice。  
+![多了一条poll记录](img/05.png)  
+
 # Step-last：后记
 ## 系列文章风格
 系列文章会以低零基础、手把手、逐行解释、连续完整、资源指向的风格进行写作。
@@ -175,6 +322,7 @@ admin.site.register(Choice)
 ## 文章列表
 Vue+Django构建前后端分离项目：
 https://zhuanlan.zhihu.com/p/54776124
+Python构建RESTful网络服务[Django篇：基于函数视图的API]：https://zhuanlan.zhihu.com/p/55562891
 
 ## 参考文献
 Hillar G C. Building RESTful Python Web Services[J]. Birmingham, UK: Packt Publishing Ltd, 2016.
