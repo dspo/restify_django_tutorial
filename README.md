@@ -208,17 +208,17 @@ urlpatterns = [
 ```
 创建好超级用户后，可以登录用用后台http://127.0.0.1:8000/admin/ ，创建其他用户。  
 
-![admin的后台页](img/01.png)  
+![admin-backend](img/01.png)  
 
 创建完用户后，再添加polls和choices。  
 
-![添加的choice](img/02.png)  
+![added-choice](img/02.png)  
 
 ## 查看API
 打开浏览器，访问http://127.0.0.1:8000/api-polls/
 可以看到你刚刚创建的poll
 
-![添加的choisce](img/03.png)  
+![poll](img/03.png)  
 
 ## 为什么需要DjangoRESTFramework
 我们可以用原生的Django编写API，为什么还要DjangoRESTFramework呢？因为，大多时候，请求控制（认证、权限、频率）、序列化等，都是在做一些重复的工作，DRF大大简化了API的编写。
@@ -311,11 +311,11 @@ True                      )
 ```
 登录后台，可以看到，已经多了一条poll记录。
 
-![多了一条poll记录](img/04.png)  
+![another-poll](img/04.png)  
 
 可以尝试使用模型序列化器为这个poll添加choice。    
 
-![多了一条poll记录](img/05.png)    
+![added-choice](img/05.png)    
 
 ## 项目代码
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b2
