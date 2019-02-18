@@ -1,4 +1,4 @@
-# rest_django_tutorial
+# <center>重构Djagno官方教程为RESTful网络应用</center>
 ![LOGO](img/logo.jpg)  
 # 系列文章介绍
 本系列文章将详细介绍将Django官方引导教程中的投票项目改写为RESTful网络服务。Django官方教程地址https://docs.djangoproject.com/zh-hans/2.1/intro/tutorial01/
