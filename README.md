@@ -454,10 +454,10 @@ urlpatterns = [
 
 
 ## 文章列表
-* Vue+Django构建前后端分离项目：
+* Vue+Django构建前后端分离项目（选读）：
 https://zhuanlan.zhihu.com/p/54776124
 * Python构建RESTful网络服务[Django篇：基于函数视图的API]：https://zhuanlan.zhihu.com/p/55562891
-* Python构建RESTful网络服务[Django篇：使用PostgreSQL替代SQLite]：https://zhuanlan.zhihu.com/p/55903530
+* Python构建RESTful网络服务[Django篇：使用PostgreSQL替代SQLite]（选读）：https://zhuanlan.zhihu.com/p/55903530
 * Python构建RESTful网络服务[Django篇：基于类视图的API]：https://zhuanlan.zhihu.com/p/57024322
 ## 参考文献
 Hillar G C. Building RESTful Python Web Services[J]. Birmingham, UK: Packt Publishing Ltd, 2016.
