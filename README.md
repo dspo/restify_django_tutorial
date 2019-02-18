@@ -18,7 +18,7 @@ REST是Representational State Transfer的缩写（不要试图去翻译它，你
 要理解REST，首先在明确这几点：
 * REST不是平台，不是软件，而是一套规范、一套倡议。就如同HTTP是一套规范，Google Python Code Style、PEP8、阿里Java开发规范一样是一套倡议。
 * URL定位资源，HTTP动词（GET,POST,DELETE,DETC）描述操作（@lvony ）。用我们熟悉的Python HTTP请求库requests来举例，requests.get('http://some_books_tore.com/books/1')，可以猜测它是访问序号为1的book（资源），并采用get方法取回（动作）；requests.delete('http://some_books_tore.com/books/1')，则猜测它可能是访问序号为1的book，并删除它。  
-![REST API](img/00.PNG)
+![REST-API](img/00.pnf)
 
 * Server和Client之间传递某资源的一个表现形式，比如用JSON，XML传输文本，或者用JPG，WebP传输图片等。当然还可以压缩HTTP传输时的数据（on-wire data compression）。
 * 用 HTTP Status Code传递Server的状态信息。比如最常用的 200 表示成功，500 表示Server内部错误等。
@@ -446,20 +446,20 @@ urlpatterns = [
 
 # Step-last：后记
 ## 系列文章风格
-系列文章会以低零基础、手把手、逐行解释、连续完整、资源指向的风格进行写作。
+系列文章会以低零基础、手把手、逐行解释、连续完整的风格进行写作。
 * 低零基础：降低文章阅读门槛，使接触Python Web开发时间较短的读者也能有所收获。本人本职是从事数据开发与数据挖掘，所以对低零基础深有体会。
 * 手把手：一些基础操作，也会说明。如本文中，包括安装库等操作也会进行说明。
 * 逐行解释：对代码进行解释，以白居易写诗风格为目标（传说白居易会把自己的诗解释给街头妇人，直到连不懂文化的妇人也能明白，完成创作）。
-* 连续完整：连续是指，文章是成系列的，上文下文之间是有着联系的，项目是连续的。代码托管也体现了这一点，不同的文章，对应不同的git标签，也体现了不同的进度。完整是指，项目是完整的，文章也是完整的。文章可以当作博文来读，也可以当作教程来读。
-* 资源指向：文章中会引用一些别的文章，对引用的文章，都会说明出处。文章中涉及的学习资源，也会作说明。
+* 连续完整：连续是指，文章是成系列的，上文下文之间是有着联系的，项目是连续的。代码托管也体现了这一点，不同的文章，对应不同的git标签或分支，也体现了不同的进度。完整是指，项目是完整的，文章也是完整的。文章可以当作博文来读，也可以当作教程来读。
+
 
 ## 文章列表
-Vue+Django构建前后端分离项目：
+* Vue+Django构建前后端分离项目：
 https://zhuanlan.zhihu.com/p/54776124
-Python构建RESTful网络服务[Django篇：基于函数视图的API]：https://zhuanlan.zhihu.com/p/55562891
-
+* Python构建RESTful网络服务[Django篇：基于函数视图的API]：https://zhuanlan.zhihu.com/p/55562891
+* Python构建RESTful网络服务[Django篇：使用PostgreSQL替代SQLite]：https://zhuanlan.zhihu.com/p/55903530
+* Python构建RESTful网络服务[Django篇：基于类视图的API]：https://zhuanlan.zhihu.com/p/57024322
 ## 参考文献
 Hillar G C. Building RESTful Python Web Services[J]. Birmingham, UK: Packt Publishing Ltd, 2016.
-（注：系列文章中多次参考的同文献，只列明一次）
 
 
