@@ -320,6 +320,124 @@ True                      )
 ## 项目代码
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b2
 
+# Step-5：基于DRF的视图类的视图
+## 使用APIView
+我们将使用DRF中的APIView来重写之前编写的两个视图。我们了解过Django中的基于类的视图，APIView封装和继承了Django原生的视图类，并额外提供了部分功能。
+新建一个polls/apiview.py，编写代码如下：
+```python
+# in polls/apiview.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+
+
+from .models import Poll, Choice
+from .serializers import PollSerializer
+
+
+class PollList(APIView):
+    def get(self, request):
+        polls = Poll.objects.all()[:20]  # 从Poll模型对应的表中取出所有记录，并切片前20条记录。这是一个QuerySet类的实例，其中包含了如何取数的信息。
+        serialized = PollSerializer(polls, many=True)  # 利用QuerySet实例化一个序列化器。many=True表示，这是对多条记录的请求。
+        return Response(serialized.data)  # serialized.data是一个有序字典对象
+
+
+class PollDetail(APIView):
+    def get(self, request, pk):
+        poll = get_object_or_404(Poll, pk=pk)  # get_object_or_404要么取回记录实例要么返回404 Not Found状态
+        serialized = PollSerializer(poll)  # 序列化这个记录实例
+        return Response(data=serialized.data)
+```
+我们再把url指向对应的新的视图。
+```python
+# in polls/ur.py
+from django.urls import path
+# from .views import polls_list, polls_detail
+from .apiview import PollList, PollDetail
+
+
+urlpatterns = [
+    path("polls/", PollList.as_view(), name="polls_list"),  # .as_view()访求返回的是一个函数。以.as_view()作为入口，这个序列化器实例会进行请求方法分发、执行视图函数（方法）等操作。
+    path("polls/<int:pk>/", PollDetail.as_view(), name="polls_detail"),
+]
+```
+# 使用DRF通用视图简化代码
+检查之前写的视图，确认它是可以正常工作的，但是代码有点冗余和麻烦。DRF为我们提供了通用视图，它预封装了许多有用的功能。
+```python
+# in polls/apiview.py
+from rest_framework import generics
+
+from .models import Poll, Choice
+from .serializers import PollSerializer, ChoiceSerializer, VoteSerializer
+
+
+class PollList(generics.ListCreateAPIView):
+    queryset = Poll.objects.all()
+    serializer_class = PollSerializer
+
+
+class PollDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Poll.objects.all()
+    serializer_class = PollSerializer
+```
+对数据库的操作，一般称为CRUD或CRUDL，即Create（增加记录），Retrieve或Read（查询单条记录），Update（修改记录），Destroy或Delete（删除记录）。在本节之前，我们编写的视图中已经支持了List操作和Retrieve操作，还不能支持其他操作。
+我们从generics.ListCreateAPIView类的名字上可以看出，它支持List、Create两种视图功能。其中List对应的HTTP动词是GET，Create对应的HTTP动态是POST。
+从generics.RetrieveUpdateDestroyAPIView的名字可以看出，它支持Retrieve、Update、Destroy，它可以取回单条记录，修改单条记录，，删除单条记录。Retrieve、Update、Destroy对应的HTTP动词分别是GET、PUT、DELETE。
+这些通用视图类是如何支持多种操作的呢？这涉及到多继承（也称新式类，也称混合类、混合继承等）。在此不多述，在以后的文章中，希望能对通用视图类展开来说。
+现在我们打开http://127.0.0.1:8000/api-polls/polls/，可以发现，原来的数据仍能取回，而网页下方，出现了一个可以提交POST请求的表单。  
+![post-form](img/06.PNG)    
+说明我们的视图是支持POST的视图了。
+
+## 编写其它视图
+```python
+# in polls/apiview.py
+from rest_framework import generics
+
+from .models import Poll, Choice
+from .serializers import PollSerializer, ChoiceSerializer, VoteSerializer
+
+
+class PollList(generics.ListCreateAPIView):
+    queryset = Poll.objects.all()
+    serializer_class = PollSerializer
+
+
+class PollDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Poll.objects.all()
+    serializer_class = PollSerializer
+
+
+class ChoiceList(generics.ListCreateAPIView):
+    queryset = Choice.objects.all()
+    serializer_class = ChoiceSerializer
+    
+    
+class CreateVote(generics.CreateAPIView):
+    # Vote只须要被创建
+    serializer_class = VoteSerializer
+```
+编写polls/urls.py进行url分发。
+```python
+# in polls/urls.py
+from django.urls import path
+# from .views import polls_list, polls_detail
+from .apiview import PollList, PollDetail, ChoiceList, CreateVote
+
+
+urlpatterns = [
+    path("polls/", PollList.as_view(), name="polls_list"),
+    path("polls/<int:pk>/", PollDetail.as_view(), name="polls_detail"),
+    path('choices/', ChoiceList.as_view(), name='choice_list'),
+    path('vote/', CreateVote.as_view(), name='create_view')
+]
+```
+尝试用POST新建一个问题。  
+![post-form](img/07.PNG)    
+
+用POST为这个问题添加选项。  
+![post-form](img/08.PNG)    
+细心的话可以发现，POST成功后，立马返回了POST成功的数据。
+
 # Step-last：后记
 ## 系列文章风格
 系列文章会以低零基础、手把手、逐行解释、连续完整、资源指向的风格进行写作。
