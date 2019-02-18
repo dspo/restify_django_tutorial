@@ -361,7 +361,7 @@ urlpatterns = [
     path("polls/<int:pk>/", PollDetail.as_view(), name="polls_detail"),
 ]
 ```
-# 使用DRF通用视图简化代码
+## 使用DRF通用视图简化代码
 检查之前写的视图，确认它是可以正常工作的，但是代码有点冗余和麻烦。DRF为我们提供了通用视图，它预封装了许多有用的功能。
 ```python
 # in polls/apiview.py
@@ -416,7 +416,8 @@ class CreateVote(generics.CreateAPIView):
     # Vote只须要被创建
     serializer_class = VoteSerializer
 ```
-编写polls/urls.py进行url分发。
+
+## 编写polls/urls.py进行url分发。
 ```python
 # in polls/urls.py
 from django.urls import path
@@ -431,12 +432,17 @@ urlpatterns = [
     path('vote/', CreateVote.as_view(), name='create_view')
 ]
 ```
+
+## 尝试POST请求
 尝试用POST新建一个问题。  
 ![post-form](img/07.PNG)    
 
 用POST为这个问题添加选项。  
 ![post-form](img/08.PNG)    
 细心的话可以发现，POST成功后，立马返回了POST成功的数据。
+
+## 项目代码
+目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b3
 
 # Step-last：后记
 ## 系列文章风格
