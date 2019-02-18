@@ -215,7 +215,7 @@ urlpatterns = [
 ![ADDEDCHOICE](/img/02.PNG)  
 
 ## 查看API
-打开浏览器，访问http://127.0.0.1:8000/api-polls/
+打开浏览器，访问http://127.0.0.1:8000/api-polls/polls/
 可以看到你刚刚创建的poll
 
 ![poll](img/03.PNG)  
