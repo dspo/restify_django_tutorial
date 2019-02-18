@@ -380,15 +380,16 @@ class PollDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Poll.objects.all()
     serializer_class = PollSerializer
 ```
-对数据库的操作，一般称为CRUD或CRUDL，即Create（增加记录），Retrieve或Read（查询单条记录），Update（修改记录），Destroy或Delete（删除记录）。在本节之前，我们编写的视图中已经支持了List操作和Retrieve操作，还不能支持其他操作。
-我们从generics.ListCreateAPIView类的名字上可以看出，它支持List、Create两种视图功能。其中List对应的HTTP动词是GET，Create对应的HTTP动态是POST。
-从generics.RetrieveUpdateDestroyAPIView的名字可以看出，它支持Retrieve、Update、Destroy，它可以取回单条记录，修改单条记录，，删除单条记录。Retrieve、Update、Destroy对应的HTTP动词分别是GET、PUT、DELETE。
-这些通用视图类是如何支持多种操作的呢？这涉及到多继承（也称新式类，也称混合类、混合继承等）。在此不多述，在以后的文章中，希望能对通用视图类展开来说。
-现在我们打开http://127.0.0.1:8000/api-polls/polls/，可以发现，原来的数据仍能取回，而网页下方，出现了一个可以提交POST请求的表单。  
+对数据库的操作，一般称为CRUD或CRUDL，即Create（增加记录），Retrieve或Read（查询单条记录），Update（修改记录），Destroy或Delete（删除记录）。在本节之前，我们编写的视图中已经支持了List操作和Retrieve操作，还不能支持其他操作。  
+我们从generics.ListCreateAPIView类的名字上可以看出，它支持List、Create两种视图功能。其中List对应的HTTP动词是GET，Create对应的HTTP动态是POST。  
+从generics.RetrieveUpdateDestroyAPIView的名字可以看出，它支持Retrieve、Update、Destroy，它可以取回单条记录，修改单条记录，，删除单条记录。Retrieve、Update、Destroy对应的HTTP动词分别是GET、PUT、DELETE。  
+这些通用视图类是如何支持多种操作的呢？这涉及到多继承（也称新式类，也称混合类、混合继承等）。在此不多述，在以后的文章中，希望能对通用视图类展开来说。  
+现在我们打开http://127.0.0.1:8000/api-polls/polls/ ，可以发现，原来的数据仍能取回，而网页下方，出现了一个可以提交POST请求的表单。  
 ![post-form](img/06.PNG)    
 说明我们的视图是支持POST的视图了。
 
 ## 编写其它视图
+我们还要为选项和投票编写视图。
 ```python
 # in polls/apiview.py
 from rest_framework import generics
