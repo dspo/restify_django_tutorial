@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from rest_framework.urlpatterns import format_suffix_patterns
 # from .views import polls_list, polls_detail
 # from .apiview import PollList, PollDetail, ChoiceList, CreateVote
 from .apiviewsets import PollViewSet, ChoiceList, CreateVote
@@ -17,3 +18,4 @@ urlpatterns = [
 ]
 
 urlpatterns += router.urls  # path('', include(router.urls)),
+urlpatterns = format_suffix_patterns(urlpatterns=urlpatterns)
