@@ -445,7 +445,7 @@ urlpatterns = [
 ## 项目代码
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b3
 
-# Step-5：基于DRF的视图集的视图
+# Step-6：基于DRF的视图集的视图
 ## 优化API
 到目前为止，我们的3个APIEs（American Petroleum Institute Endpoints， API端点）。
 * /polls/, /polls/<pk>/
@@ -540,7 +540,7 @@ urlpatterns = [
     path('polls/<int:pk>/choices/<int:choice_pk>/vote/', CreateVote.as_view(), name=CreateVote.name)  # 投给某个问题下的某个选项
 ]
 ```            
-现在可以查看http://127.0.0.1:8000/api-polls/polls/1/choice 试试。
+现在可以查看http://127.0.0.1:8000/api-polls/polls/1/choice/ 试试。
 
 ## 项目代码
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b4
@@ -685,6 +685,7 @@ class PollViewSet(viewsets.ModelViewSet):
 使用ViewSet比使用View有两个主要的优势：
 * 重复的逻辑可以放在一个类里。在本例中，我们只要指定一次序列化器，就可以完成两个视图的序列化。
 * 利用router实例，我们一定程序上不须要自己来与URLconf。
+
 但是我们在构建视图时，仍须要权衡。使用普通的视图和URLconf，会比较复杂，但是可以更加定制化地构建视图，逻辑会更加灵活。使用ViewSet，会更快，更简洁，但是会牺牲很大程度的灵活性和可拓展性，项目后期逻辑修改时，重构也变得更加麻烦。  
 就我的个人意见来说，并不推荐使用ViewSet。一来Django已经被人说“重”了，用ViewSet全显得更重；二来软件建构应当有一定的灵活性、可控性，ViewSet的内部逻辑被封装了，显得不那么“可控”。  
 DRF官方的意见，如果你确定你的API够持久，够大量，请使用ViewSet配置视图。（原文是“if ... you want to enforce a consistent URL configuration”，但我觉得你的API应该没你想得那么consistent）
@@ -696,12 +697,14 @@ DRF官方的意见，如果你确定你的API够持久，够大量，请使用Vi
 * APIView子类
 * generic.*子类，通用视图
 * 视图集（ViewSet，ModelViewSet，ReadOnlyViewSet[暂时没有提到]）
+
 我们应该选择哪种方式构建视图集呢？我的意见是这样的：
 * 项目并非前后端分离的，只须要少量API，可以使用原生Django构建视图，而不必引用DRF；
 * 要完全掌控视图行为，可以使用APIView；
 * 要使用CRUD中的全部或部分操作时，可以使用通用视图类；
 * 要高度配置化时，可以使用视图集；
-如图是对选择构建视图的方式的建议：
+如图是对选择构建视图的方式的建议：  
+
 ![post-form](img/how-to-choose-the-way-to-build-API-views.PNG)
 
 ## 使用有后缀的url查看API
@@ -717,11 +720,12 @@ urlpatterns = format_suffix_patterns(urlpatterns=urlpatterns)
 
 和
 * http://127.0.0.1:8000/api-polls/polls.json
-试试，看看有什么不同。
+
+试试看，有什么不同。  
 ————前者会返回一个API预览页面，后者会返回JSON格式的数据。
 
 ## 项目代码
-目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b6
+目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b5
 
 # Step-last：后记
 ## 系列文章风格
