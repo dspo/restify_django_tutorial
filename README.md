@@ -11,7 +11,7 @@
 * Python Web框架如何进行RESTful开发
 * Django REST Framework
 * 不同HTTP请求方法如何发生作用
-* 用Django及DRF编写API操作数据库
+
 
 ## 什么是RESTful API
 REST是Representational State Transfer的缩写（不要试图去翻译它，你会发现三个字都认识，但合在一起就不知道它说啥了）。
@@ -60,6 +60,9 @@ OPTIONS，用于获取目的资源所支持的通信选项。
 requests可以用来测试我们的API，是可选的。
 
 # Step-2：创建项目和应用
+## 内容提要
+* 创建Django项目与应用
+* 创建模型
 
 ## 新建Django项目和App
 新建一个项目文件夹，激活虚拟环境，新建一个项目。
@@ -164,10 +167,16 @@ admin.site.register(Choice)
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b1
 
 # Step-3：使用原生Django编写API
+## 内容提要 
+* 使用Django视图编写API
+* 创建用户
+* 查看API
+
+## 编写视图
 我们设计两个API，用以返回JSON格式的数据.  
 • /polls/       GETs list of Poll  
 • /polls/<id>/  GETs data of a specific Poll  
-## 编写视图
+
 ```python
 # in polls/views.py
 from django.shortcuts import render, get_object_or_404
@@ -224,6 +233,11 @@ urlpatterns = [
 我们可以用原生的Django编写API，为什么还要DjangoRESTFramework呢？因为，大多时候，请求控制（认证、权限、频率）、序列化等，都是在做一些重复的工作，DRF大大简化了API的编写。
 
 # Step-4：序列化与反序列化
+## 内容提要
+* 解释序列化与反序列化
+* 编写序列化器
+* 使用模型序列化器操作模型
+
 ## 什么是序列化与反序列化
 serialization and deserialization 我们称为序列化与反序列化。
 序列化 (Serialization)是将对象的状态信息转换为可以存储或传输的形式的过程。在序列化期间，对象将其当前状态写入到临时或持久性存储区。以后，可以通过从存储区中读取或反序列化对象的状态，重新创建该对象。
@@ -321,6 +335,10 @@ True                      )
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b2
 
 # Step-5：基于DRF的视图类的视图
+## 内容提要
+* 使用APIView类编写视图
+* 使用通用视图类编写视图
+
 ## 使用APIView
 我们将使用DRF中的APIView来重写之前编写的两个视图。我们了解过Django中的基于类的视图，APIView封装和继承了Django原生的视图类，并额外提供了部分功能。
 新建一个polls/apiview.py，编写代码如下：
@@ -446,6 +464,14 @@ urlpatterns = [
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b3
 
 # Step-6：基于DRF的视图集的视图
+## 内容提要
+* 优化API更加RESTful
+* 使用ViewSet子类编写视图
+* 使用Router子类编写url分发
+* 讨论ViewSet的优缺点
+* 如何选择构建视图的方式
+* 使用有后缀的API
+
 ## 优化API
 到目前为止，我们的3个APIEs（American Petroleum Institute Endpoints， API端点）。
 * /polls/, /polls/<pk>/
@@ -596,6 +622,8 @@ class CreateVote(APIView):
     # 代码略
     pass
 ```
+
+## 使用Router子类编写url分发
 更改视图后，还要更改urls分发。
 ```python
 # in poll/urls.py
@@ -657,13 +685,17 @@ class PollViewSet(viewsets.ViewSet):
         serializer = PollSerializer(poll)
         return Response(serializer.data)
 ```
+
 可以看到，它重写的list方法和retrieve方法，与普通的APIView中的方法写法基本一致。  
-如果需要的话，我们可以把这两个方法分别绑定到不同的请求，形成两个视图：
+如果需要的话，我们可以把这两个方法分别绑定到不同的请求，形成两个视图：  
+
 ```python
 poll_list = PollViewSet.as_view({'get': 'list'})
 poll_detail = PollViewSet.as_view({'get': 'retrieve'})
 ```
+
 但是通常我们不须要这么做，使用Router类的实例，就可以替我们完成这步：
+
 ```python
 from poll.apiviewset import PollViewSet
 from rest_framework.routers import DefaultRouter
@@ -672,8 +704,10 @@ router = DefaultRouter()
 router.register(r'polls', PollViewSet, basename='polls')
 urlpatterns = router.urls
 ```
+
 router解析了我们的视图集，自动把请求动词绑定到视图集的方法，作为视图；并把url分发到对应的视图。  
-ModelViewSet对ViewSet进行了进一步封装，
+ModelViewSet对ViewSet进行了进一步封装，  
+
 ```python
 class PollViewSet(viewsets.ModelViewSet):
     """
@@ -682,6 +716,7 @@ class PollViewSet(viewsets.ModelViewSet):
     serializer_class = PollSerializer
     queryset = Poll.objects.all()
 ```
+
 使用ViewSet比使用View有两个主要的优势：
 * 重复的逻辑可以放在一个类里。在本例中，我们只要指定一次序列化器，就可以完成两个视图的序列化。
 * 利用router实例，我们一定程序上不须要自己来与URLconf。
