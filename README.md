@@ -445,6 +445,265 @@ urlpatterns = [
 ## 项目代码
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b3
 
+# Step-5：基于DRF的视图集的视图
+## 优化API
+到目前为止，我们的3个APIEs（American Petroleum Institute Endpoints， API端点）。
+* /polls/, /polls/<pk>/
+* /choices/
+* /vote/
+什么是APIEs，也叫API Endpoints，称为API端点，指向同一资源的一类API称为一个API端点。如上面的三个API端点中，/polls/ 和 /polls/<pk>/ 指向的是同一个模型资源，所以是同一个API端点。  
+现在，当我们访问/choices/，获取到是所有的选项。但是从直觉上来说，我们要的应该是某个问题下面的选项，而不是把所有选项一股脑全取出来。所以我们想要的API应该是这样子的：  
+* /polls/<int:pk>/choices/
+取出指定pk的poll的选项。  
+我们想要的投票API应该是这样子的：
+* /polls/<int:pk>/choices/<int:choice_pk>/vote/
+将我们的选票投给某问题下的某选项。  
+现在我们来修改视图以支持上面的两个优化了的API。  
+```python
+# in polls/apiview.py
+from rest_framework import generics 
+from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework.response import Response
+
+from .models import Poll, Choice
+from .serializers import PollSerializer, ChoiceSerializer, VoteSerializer
+
+
+class PollList(generics.ListCreateAPIView):
+    queryset = Poll.objects.all()
+    serializer_class = PollSerializer
+
+
+class PollDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Poll.objects.all()
+    serializer_class = PollSerializer
+
+
+# class ChoiceList(generics.ListCreateAPIView):
+#     queryset = Choice.objects.all()
+#     serializer_class = ChoiceSerializer
+#
+#
+# class CreateVote(generics.CreateAPIView):
+#     serializer_class = VoteSerializer
+
+
+class ChoiceList(generics.ListCreateAPIView):
+    name = 'choice_list'
+
+    # 自定义选择queryset
+    def get_queryset(self):
+        queryset = Choice.objects.filter(poll_id=self.kwargs['pk'])  # 取出指定id的poll
+        return queryset
+
+    # queryset也可以直接指定，但推荐使用get_queryset
+    # queryset = Choice.objects.filter(poll_id=self.kwargs['pk'])  
+
+    # 自定义选择序列化器；推荐使用此方法
+    # def get_serializer_class(self):
+    #     return ChoiceSerializer
+
+    # 直接指定序列化器
+    serializer_class = ChoiceSerializer
+
+
+class CreateVote(APIView):
+    name = 'create_vote'
+
+    # 自定义post方法
+    def post(self, request, pk, choice_pk):
+        # request与url中取出数据，并序列化
+        voted_by = request.data.get('voted_by')
+        data = {'choice': choice_pk, 'poll': pk, 'voted_by': voted_by}
+        serialized = VoteSerializer(data=data)
+
+        # 验证数据有效性（必要），保存到模型（表）；并返回状态
+        if serialized.is_valid():
+            serialized.save()
+            return Response(serialized.data, status=status.HTTP_201_CREATED)
+        else:
+            # 返回400状态
+            return Response(serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+```
+上面的代码几乎做了逐行注释，就不再重复解释。主要是通过重写方法，自定义视图的CRUD逻辑。  
+在polls/urls.py中进行url分发。
+```python
+# in polls/urls.py
+... ...
+urlpatterns = [
+    path("polls/", PollList.as_view(), name="polls_list"),
+    path("polls/<int:pk>/", PollDetail.as_view(), name="polls_detail"),
+    
+    path('polls/<int:pk>/choices', ChoiceList.as_view(), name=ChoiceList.name),  # 获取某个问题下的选项
+    path('polls/<int:pk>/choices/<int:choice_pk>/vote/', CreateVote.as_view(), name=CreateVote.name)  # 投给某个问题下的某个选项
+]
+```            
+现在可以查看http://127.0.0.1:8000/api-polls/polls/1/choice 试试。
+
+## 项目代码
+目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b4
+
+## 使用DRF视图集
+视图集，viewset，是DRF提供的另一种高度配置化的编写视图方式。  
+我们观察PollList和PollDetail两个视图类，发现它们除了父类不同以外，其他配置都是一样的，使用同样的请求规则和同样的序列化器。这种同重代码可以使用视图集进行简化。
+```python
+# in poll/apiview.py  两个视图配置几乎完全一致
+class PollList(generics.ListCreateAPIView):
+    queryset = Poll.objects.all()
+    serializer_class = PollSerializer
+
+
+class PollDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Poll.objects.all()
+    serializer_class = PollSerializer
+```
+我们拷贝一份poll/apiview.py为poll/apiviewset.py，将代码改为如下内容：
+```python
+# poll/apiviewset.py
+from rest_framework import generics
+from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework import viewsets
+
+from .models import Poll, Choice
+from .serializers import PollSerializer, ChoiceSerializer, VoteSerializer
+
+
+# class PollList(generics.ListCreateAPIView):
+#     queryset = Poll.objects.all()
+#     serializer_class = PollSerializer
+#
+#
+# class PollDetail(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Poll.objects.all()
+#     serializer_class = PollSerializer
+
+class PollViewSet(viewsets.ModelViewSet):
+    # 用一个视图集替代PollList和PollDetail两个视图
+    queryset = Poll.objects.all()
+    serializer_class = PollSerializer
+
+
+class ChoiceList(generics.ListCreateAPIView):
+    # 代码略
+    pass
+
+
+class CreateVote(APIView):
+    # 代码略
+    pass
+```
+更改视图后，还要更改urls分发。
+```python
+# in poll/urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+# from .views import polls_list, polls_detail
+# from .apiview import PollList, PollDetail, ChoiceList, CreateVote
+from .apiviewsets import PollViewSet, ChoiceList, CreateVote
+
+
+router = DefaultRouter()
+router.register(prefix='polls', viewset=PollViewSet, base_name='polls')
+
+urlpatterns = [
+    # path("polls/", PollList.as_view(), name="polls_list"),
+    # path("polls/<int:pk>/", PollDetail.as_view(), name="polls_detail"),
+    # path('', include(router.urls)),  -------> (1)
+    path('polls/<int:pk>/choices', ChoiceList.as_view(), name=ChoiceList.name),
+    path('polls/<int:pk>/choices/<int:choice_pk>/vote/', CreateVote.as_view(), name=CreateVote.name)
+]
+
+urlpatterns += router.urls  # path('', include(router.urls)),
+```
+urlpatterns中，关于choices和vote的url没有变化。关于polls的url分发，我们引入了一个DefaultRouter类。
+```python
+router.register(prefix='polls', viewset=PollViewSet, base_name='polls')
+```
+我们只须指定前缀、视图集等信息，Django会把以“polls”为前缀的url，都分发给对应的视图集处理。  
+
+
+Django REST framework 允许把相关的视图联系在一起，用一个类来表示，称为ViewSet。在其它框架中，也有类似的概念，如'Resources'、'Controllers'。
+关于路由与控制器的叙述，可以参考《Ruby on Rails文档》：  
+> 路由决定了使用什么控制器，控制器负责对请求产生响应并决定如何输出。  
+
+ViewSet类是View类的子类，但它不提供 .get() 或 .post()这样的与HTTP动词同名的方法，而是提供 .list()、 .create()这样的方法。ViewSet在处理完视图逻辑之后，调用 .as_view()方法，这时才执行HTTP动词所表示的动作。使用视图集来构建视图时，通常不再在urlconf里显式地表示url，而是使用一个Router类的实例，把url注册到这个实例中，这个实例会决定url的分发。我们用两种方式把这个实例中的分发机制加入到urlpattern中：
+* urlpatterns += router.urls  
+* path('', include(router.urls))
+
+我们来看一个自定义的简单的ViewSet，这也与DRF官方文档上的示例基本一致：
+```python
+from django.shortcuts import get_object_or_404
+from poll.serializers import PollSerializer
+from poll.models import Poll
+from rest_framework import viewsets
+from rest_framework.response import Response
+
+class PollViewSet(viewsets.ViewSet):
+    """
+    A simple ViewSet for listing or retrieving users.
+    """
+    def list(self, request):
+        queryset = Poll.objects.all()
+        serializer = PollSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        queryset = Poll.objects.all()
+        poll = get_object_or_404(queryset, pk=pk)
+        serializer = PollSerializer(poll)
+        return Response(serializer.data)
+```
+可以看到，它重写的list方法和retrieve方法，与普通的APIView中的方法写法基本一致。  
+如果需要的话，我们可以把这两个方法分别绑定到不同的请求，形成两个视图：
+```python
+poll_list = PollViewSet.as_view({'get': 'list'})
+poll_detail = PollViewSet.as_view({'get': 'retrieve'})
+```
+但是通常我们不须要这么做，使用Router类的实例，就可以替我们完成这步：
+```python
+from poll.apiviewset import PollViewSet
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register(r'polls', PollViewSet, basename='polls')
+urlpatterns = router.urls
+```
+router解析了我们的视图集，自动把请求动词绑定到视图集的方法，作为视图；并把url分发到对应的视图。  
+ModelViewSet对ViewSet进行了进一步封装，
+```python
+class PollViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing user instances.
+    """
+    serializer_class = PollSerializer
+    queryset = Poll.objects.all()
+```
+使用ViewSet比使用View有两个主要的优势：
+* 重复的逻辑可以放在一个类里。在本例中，我们只要指定一次序列化器，就可以完成两个视图的序列化。
+* 利用router实例，我们一定程序上不须要自己来与URLconf。
+但是我们在构建视图时，仍须要权衡。使用普通的视图和URLconf，会比较复杂，但是可以更加定制化地构建视图，逻辑会更加灵活。使用ViewSet，会更快，更简洁，但是会牺牲很大程度的灵活性和可拓展性，项目后期逻辑修改时，重构也变得更加麻烦。  
+就我的个人意见来说，并不推荐使用ViewSet。一来Django已经被人说“重”了，用ViewSet全显得更重；二来软件建构应当有一定的灵活性、可控性，ViewSet的内部逻辑被封装了，显得不那么“可控”。  
+DRF官方的意见，如果你确定你的API够持久，够大量，请使用ViewSet配置视图。（原文是“if ... you want to enforce a consistent URL configuration”，但我觉得你的API应该没你想得那么consistent）
+
+## 如何选择构建视图的方式
+关于ViewSet，还有许多内容，在此不展开来说了。
+到目前为止，我们使用了4种方式构建视图，分别是
+* 原生Django构建视图（基于函数的视图，基于类的视图[暂时没有提到]）
+* APIView子类
+* generic.*子类，通用视图
+* 视图集（ViewSet，ModelViewSet，ReadOnlyViewSet[暂时没有提到]）
+我们应该选择哪种方式构建视图集呢？我的意见是这样的：
+* 项目并非前后端分离的，只须要少量API，可以使用原生Django构建视图，而不必引用DRF；
+* 要完全掌控视图行为，可以使用APIView；
+* 要使用CRUD中的全部或部分操作时，可以使用通用视图类；
+* 要高度配置化时，可以使用视图集；
+如图是对选择构建视图的方式的建议：
+![post-form](img/how-to-choose-the-way-to-build-API-views.PNG)
+
 # Step-last：后记
 ## 系列文章风格
 系列文章会以低零基础、手把手、逐行解释、连续完整的风格进行写作。
