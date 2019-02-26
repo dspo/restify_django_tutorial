@@ -164,7 +164,8 @@ admin.site.register(Poll)
 admin.site.register(Choice)
 ```
 ## 项目代码
-目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b1
+目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b1  
+注意：本项目中，使用的数据是PostgreSQL，但Django默认的是SQLite3，读者下载使用代码时，应当根据自己环境的实际情况在settings.py中配置数据库。  
 
 # Step-3：使用原生Django编写API
 ## 内容提要 
@@ -332,7 +333,8 @@ True                      )
 ![added-choice](img/05.PNG)    
 
 ## 项目代码
-目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b2
+目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b2  
+注意：本项目中，使用的数据是PostgreSQL，但Django默认的是SQLite3，读者下载使用代码时，应当根据自己环境的实际情况在settings.py中配置数据库。  
 
 # Step-5：基于DRF的视图类的视图
 ## 内容提要
@@ -461,7 +463,8 @@ urlpatterns = [
 细心的话可以发现，POST成功后，立马返回了POST成功的数据。
 
 ## 项目代码
-目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b3
+目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b3  
+注意：本项目中，使用的数据是PostgreSQL，但Django默认的是SQLite3，读者下载使用代码时，应当根据自己环境的实际情况在settings.py中配置数据库。  
 
 # Step-6：基于DRF的视图集的视图
 ## 内容提要
@@ -569,7 +572,8 @@ urlpatterns = [
 现在可以查看http://127.0.0.1:8000/api-polls/polls/1/choice/ 试试。
 
 ## 项目代码
-目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b4
+目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b4  
+注意：本项目中，使用的数据是PostgreSQL，但Django默认的是SQLite3，读者下载使用代码时，应当根据自己环境的实际情况在settings.py中配置数据库。  
 
 ## 使用DRF视图集
 视图集，viewset，是DRF提供的另一种高度配置化的编写视图方式。  
@@ -787,6 +791,7 @@ urlpatterns = format_suffix_patterns([
 
 ## 项目代码
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b5  
+注意：本项目中，使用的数据是PostgreSQL，但Django默认的是SQLite3，读者下载使用代码时，应当根据自己环境的实际情况在settings.py中配置数据库。  
 
 
 # Step-7：用户接入控制
@@ -1062,7 +1067,9 @@ urlpatterns = format_suffix_patterns([
 ```
 
 ## 项目代码
-目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b6
+目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b6  
+注意：本项目中，使用的数据是PostgreSQL，但Django默认的是SQLite3，读者下载使用代码时，应当根据自己环境的实际情况在settings.py中配置数据库。 
+
 
 # Step-last：后记
 ## 系列文章风格
