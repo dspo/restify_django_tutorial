@@ -784,8 +784,285 @@ urlpatterns = format_suffix_patterns([
 ```
 可以看到，它是一个每个元素都是一个urlpattern的列表，每一个urlpattern都为我们提供了一个生成的名称和匹配方式。可以看到，router.url是十分不灵活的。  
 
+
 ## 项目代码
-目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b5
+目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b5  
+
+
+# Step-7：用户接入控制
+到此为止我们编写的API，都是完全开放的，也就是说任何人都可以对API发起请求，服务器也会返回相应的响应。这一节，我们将对API的接入进行一定的限定，要求注册用户才能使用API。  
+
+## 认证方式
+Django REST Framework 提供了三种认证方式：
+* rest_framework.authentication 模块。
+BaseAuthentication及其子类提供了以用户名与密码进行认证的方式。如果我们要使用这种方式，我们要确保我们是在非生产环境或处于HTTPS协议。  
+* SessionAuthentication: 使用Django的session认证框架。  
+* TokenAuthentication: 提供用于认证的简单token。每个用户有一个token，发起请求时，必须在headers中携带token信息。token在headers中形如{Authorization: Token  your-token}。  
+
+本文采集第三种方式进行认证。希望在以后的文章中，能讨论其它认证方式及Json-Web-Token（JWT）认证。  
+
+## 配置DRF用户接入控制应用
+我们新建一个应用，用来管理用户接入。
+```bash
+$ python manage.py startapp useraccesscontrol
+```
+
+在项目的settings.py中，添加如下代码，进行应用定义和DRF配置：
+```python
+# in settings.py
+... ...
+
+# 定义应用
+REST_FRAMEWORK_APPS = [
+    'rest_framework',  # DRF
+    'rest_framework.authtoken',  # 认证应用
+]
+
+CUSTOM_APPS = [
+    'polls',  # 投票应用
+    'useraccesscontrol',  # 用户接入控制；
+]
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]\
+                 + REST_FRAMEWORK_APPS\
+                 + CUSTOM_APPS
+
+... ...
+
+# 配置DRF
+REST_FRAMEWORK = {
+    # 配置全局认证方式：使用token或session
+    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework.authentication.TokenAuthentication',
+                                       'rest_framework.authentication.SessionAuthentication',
+                                       ),
+    # 配置全局权限限制方式：是否经过了认证                                       
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated',
+                                   ),
+}
+
+```
+
+## 编写用户注册视图
+用户注册比较简单，思路无非是处理一个post请求，接收用户名与密码，将用户信息写入User模型对应的表中即可。在目前的权限配置中，未登录的用户，所有视图都无法访问。没登录就不能注册，显然是不合理的，所以注册视图应该应该从全局权限控制中豁免出去。另外，由于我们使用的是token认证，所以在创建用户时，要为创建的用户分配一个token，所以保存User实例时，还要同时保存一个与该user相关的Token实例。以上就是编写用户注册视图的思路。  
+另外要注意的是，任何时候用户密码都不应该能被取到，我们把这一点放到序列化器中处理。  
+
+**编写视图**  
+在应用目录下，新建一个apiview.py，编写如下代码：
+```python
+# in useraccesscontrol/apiview.py
+
+# 导入Django原生的User模型
+from django.contrib.auth.models import User
+
+from rest_framework import generics
+
+from .serializers import UserSerializer  # 这个序列化器暂时还没有编写
+
+
+# 编写创建用户的视图
+class UserCreate(generics.CreateAPIView):
+    name = 'user_create'
+
+    # 配置要使用的认证类，可以用如下方式配置（类属性方式）
+    # authentication_classes = ()
+    # 也可以用如下方式配置（实例方法）
+    def get_authenticators(self):
+        return ()  # 返回一个空的元组，表是从全局认证方式中豁免
+
+    # 配置要使用的权限为，可以使用类属性，也可以使用方法
+    # permission_classes = ()
+    def get_permissions(self):
+        return ()    # 返回一个空的元组，表是从全局认证方式中豁免
+
+    def get_serializer_class(self):
+        return UserSerializer  # 这个序列化器暂时还没有编写
+```
+代码解释见代码中的注释。  
+我们还可以编写拉取所有用户信息的视图(List, Retrieve)，读者可以自行编写。  
+
+**编写序列化器**  
+接下来我们来编写序列化器，新建 serializers.py，编写如下代码：
+```python
+# in useraccesscontrol/serializers.py
+
+from rest_framework import serializers
+from rest_framework.authtoken.models import Token  # 导入DRF为我们提供的Token模型
+
+from django.contrib.auth.models import User
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """用户相关视图的序列化器"""
+    class Meta:
+        model = User  # 选定模型
+        fields = ('pk', 'username', 'email', 'password')  # 选定字段
+        extra_kwargs = {
+            'password': {'write_only': True},
+        }  # 不返回密码字段
+
+    def create(self, validated_data):
+        # 重写ModelSerializer的create()方法以保存User实例
+        user = User(
+            email=validated_data['email'],
+            username=validated_data['username'],
+        )
+        user.set_password(validated_data['password'])  # 使用user.set_password()对密码编码，而不使用原始字符作为密码
+        user.save()  # 保存User的实例
+        Token.objects.create(user=user)  # 保存User实例后，在Token模型（数据库表）中，也对应保存一个Token实例作为用户的token
+        return user
+```
+现在我们完成了注册视图和相关序列化器的编写，要完成这个API，我们还要配置url分发。在此之前，我们把登录视图也编写完。  
+
+## 编写用户登录视图
+有了用户注册API，我们还须要编写登录API。  
+处理用户登录的思路是，客户端发送一个post请求，视图从请求中取出用户名和密码，对用户名和密码进行校验；如果校验成功，则取出用户对应的token，作为响应返回，否则返回校验不成功的信息和状态码。  
+我们继续编写useraccesscontrol/apiview.py。代码解释见注释。  
+```python
+# in useraccesscontrol/apiview.py
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+
+from rest_framework import generics, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+from .serializers import UserSerializer
+
+
+class UserCreate(generics.CreateAPIView):
+    # 略，前文已经编写过了
+    pass
+
+class UserList(generics.ListAPIView):
+    # 略，一般来说不须要拉取用户列表，但读者可以编写它
+    pass
+
+
+class UserRetrieve(generics.RetrieveAPIView):
+    # 略，不须要拉取用户信息，但读者可以编写它
+    pass
+
+
+class LoginView(APIView):
+    name = 'login'
+
+    # 对用户登录进行权限管理，使用这个API不须要是已认证过的，所以从全局权限限制中豁免
+    # permission_classes = ()
+    def get_permissions(self):
+        return ()
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(username=username, password=password)  # 对用户名和密码进行认证，如果认证成功，则返回这个用户的实例
+        if user:
+            # 认证成功，从Token表中返回该用户的token
+            return Response(
+                data={
+                    'token': user.auth_token.key,
+                }
+            )
+        else:
+            # 认证失败，则返回相关信息和状态码
+            return Response(
+                data={
+                    'error': '认证失败，请确认账号和密码是否正确',
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+```
+
+## 配置url  
+在pollsapi/urls.py对url进行分发。
+```python
+# in pollsapi/urls.py
+
+from django.contrib import admin
+from django.urls import path, include
+
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api-polls/', include('polls.urls')),
+    path('api-user-access-control/', include('useraccesscontrol.urls')),
+]
+```
+
+在useraccesscontrol/urls.py中对url进行分发。
+```python
+# in useraccesscontrol/urls.py
+from django.urls import path
+
+from rest_framework.urlpatterns import format_suffix_patterns
+
+from .apiview import UserCreate, UserList, UserRetrieve, LoginView  # UserList
+
+
+urlpatterns = format_suffix_patterns([
+    path('users/', UserCreate.as_view(), name=UserCreate.name),
+    # path('users-list/', UserList.as_view(), name=UserList.name),  # 如果没有编写相应视图，就不要分发了
+    # path('users-list/<int:pk>/', UserRetrieve.as_view(), name=UserRetrieve.name),  # 如果没有编写相应视图，就不要分发了
+    path('login/', LoginView.as_view(), name=LoginView.name),
+])
+```  
+
+## 使用API进行用户注册和登录
+最后，不要忘记做数据迁移（migrate）。完成数据迁移后，可以测试api进行注册和登录。登录后，尝试获取要认证权限才能取得的数据。注意：用此前的用户进行登录是不能成功的，因为创建这些用户时，并没有生成相应的Token，所以要使用新注册的用户进行登录。  
+```python
+# in python interactive console
+>>> import requests
+>>> import json
+>>> r = requests.post('http://127.0.0.1:8000/user-access-control/login/', data={'username': '小破球', 'password': 'somepassword'})
+>>> r
+<Response [500]>  # 以前创建的用户没有Token
+
+>>> r = requests.post('http://127.0.0.1:8000/user-access-control/login/', data={'username': '宋江', 'password': 'runrun524299'})
+>>> r
+<Response [200]>  # 新创建的用户的能正常登录
+>>> r.json()  # 能获取到token
+{'token': '5bf361eb356cbf58ab1d7fa0eb8e5d63a6929586'}
+
+>>> polls = requests.get('http://127.0.0.1:8000/api-polls/polls/1/')  # 没有使用token请求一个投票项
+>>> polls
+<Response [401]>  # 不使用token没法正确获取数据
+
+>>> headers = {'Authorization': 'Token {your_token}'.format(your_token=r.json().get('token'))}  # 将token作为headers中的一个元素，注意这个写法是固定的
+>>> polls = requests.get('http://127.0.0.1:8000/api-polls/polls/1/', headers=headers)  # 使用含有token信息的headers发起请求
+>>> polls
+<Response [200]>  # 状态码为200
+>>> print(json.dumps(polls.json(), indent=2, ensure_ascii=0))  # 获取的信息正确
+{
+  "id": 1,
+  "question": "去明尼苏达州大学要注意什么？",
+  "choices": [
+    {
+      "id": 1,
+      "votes": [],
+      "choice_text": "持正行远：用中国传统价值观打造商业帝国",
+      "poll": 1
+    },
+    ... ...
+    {
+      "id": 3,
+      "votes": [],
+      "choice_text": "道路千万条，安全第一条。开车不规范，亲人两行泪",
+      "poll": 1
+    }
+  ],
+  "pub_date": "2019-02-15T08:26:15.380191Z",
+  "created_by": 4
+}
+```
+
+## 项目代码
+目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b6
 
 # Step-last：后记
 ## 系列文章风格

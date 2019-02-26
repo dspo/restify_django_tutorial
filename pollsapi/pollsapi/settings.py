@@ -25,10 +25,20 @@ SECRET_KEY = 'fe(c^cgsck*ustrpp-2=)6)7vdawmhw1qm_o$q#atn8tmocs0b'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
+
+REST_FRAMEWORK_APPS = [
+    'rest_framework',  #
+    'rest_framework.authtoken',  # 认证应用
+]
+
+CUSTOM_APPS = [
+    'polls',  # 投票应用
+    'useraccesscontrol',  # 用户接入控制
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -37,10 +47,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+]\
+                 + REST_FRAMEWORK_APPS\
+                 + CUSTOM_APPS
 
-    'rest_framework',
-    'polls',
-]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -130,3 +140,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework.authentication.TokenAuthentication',
+                                       'rest_framework.authentication.SessionAuthentication',
+                                       ),
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated',
+                                   ),
+}
