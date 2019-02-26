@@ -770,6 +770,20 @@ urlpatterns = format_suffix_patterns([
 试试看，有什么不同。  
 ————前者会返回一个API预览页面，后者会返回JSON格式的数据。
 
+## 打印router.urls
+我们可以打印router.urls，查看其是怎样描述url的  
+```python
+[
+    <URLPattern '^polls/$' [name='polls-list']>, 
+    <URLPattern '^polls\.(?P<format>[a-z0-9]+)/?$' [name='polls-list']>, 
+    <URLPattern '^polls/(?P<pk>[^/.]+)/$' [name='polls-detail']>,
+    <URLPattern '^polls/(?P<pk>[^/.]+)\.(?P<format>[a-z0-9]+)/?$' [name='polls-detail']>, 
+    <URLPattern '^$' [name='api-root']>, 
+    <URLPattern '^\.(?P<format>[a-z0-9]+)/?$' [name='api-root']>
+]
+```
+可以看到，它是一个每个元素都是一个urlpattern的列表，每一个urlpattern都为我们提供了一个生成的名称和匹配方式。可以看到，router.url是十分不灵活的。  
+
 ## 项目代码
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b5
 
