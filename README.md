@@ -743,12 +743,23 @@ DRF官方的意见，如果你确定你的API够持久，够大量，请使用Vi
 ![post-form](img/how-to-choose-the-way-to-build-API-views.PNG)
 
 ## 使用有后缀的url查看API
-DRF提供了方便地查看API的方式，相信在前文中大家已经发现，当使用浏览器访问API和使用其它工具访问API时，会有明显的不同：使用浏览器访问时，会得到一个网页，可以方便地查看和测试API；使用其它工具时，则会返回一个JSON响应。这是由于DRF对请求头作了判断，以方便我们查看API。这里我们进一步使用DRF这一特性，在poll/urls.py中加入如下内容：
+DRF提供了方便地查看API的方式，相信在前文中大家已经发现，当使用浏览器访问API和使用其它工具访问API时，会有明显的不同：使用浏览器访问时，会得到一个网页，可以方便地查看和测试API；使用其它工具时，则会返回一个JSON响应。这是由于DRF对请求头作了判断，以方便我们查看API。这里我们进一步使用DRF这一特性，在poll/urls.py中写入如下内容：
 ```python
 # in poll/urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from rest_framework.urlpatterns import format_suffix_patterns
-... ...
-urlpatterns = format_suffix_patterns(urlpatterns=urlpatterns)
+from .apiviewsets import PollViewSet, ChoiceList, CreateVote
+
+
+router = DefaultRouter()
+router.register(prefix='polls', viewset=PollViewSet, base_name='polls')
+
+urlpatterns = format_suffix_patterns([
+    path('polls/<int:pk>/choices', ChoiceList.as_view(), name=ChoiceList.name),
+    path('polls/<int:pk>/choices/<int:choice_pk>/vote/', CreateVote.as_view(), name=CreateVote.name)
+])\
+              + router.urls  # path('', include(router.urls)),
 ```
 现在我们试着访问
 * http://127.0.0.1:8000/api-polls/polls.api
@@ -758,6 +769,20 @@ urlpatterns = format_suffix_patterns(urlpatterns=urlpatterns)
 
 试试看，有什么不同。  
 ————前者会返回一个API预览页面，后者会返回JSON格式的数据。
+
+## 打印router.urls
+我们可以打印router.urls，查看其是怎样描述url的  
+```python
+[
+    <URLPattern '^polls/$' [name='polls-list']>, 
+    <URLPattern '^polls\.(?P<format>[a-z0-9]+)/?$' [name='polls-list']>, 
+    <URLPattern '^polls/(?P<pk>[^/.]+)/$' [name='polls-detail']>,
+    <URLPattern '^polls/(?P<pk>[^/.]+)\.(?P<format>[a-z0-9]+)/?$' [name='polls-detail']>, 
+    <URLPattern '^$' [name='api-root']>, 
+    <URLPattern '^\.(?P<format>[a-z0-9]+)/?$' [name='api-root']>
+]
+```
+可以看到，它是一个每个元素都是一个urlpattern的列表，每一个urlpattern都为我们提供了一个生成的名称和匹配方式。可以看到，router.url是十分不灵活的。  
 
 ## 项目代码
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b5
