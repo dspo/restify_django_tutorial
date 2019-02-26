@@ -795,6 +795,15 @@ urlpatterns = format_suffix_patterns([
 
 
 # Step-7：用户接入控制
+## 内容提要
+* DRF提供的三种认证方式
+* 编写用户注册视图
+* 编写用户登录视图
+* 编写用户模型序列化器
+* 使用API登录
+* 用登录了的用户发起请求
+
+
 到此为止我们编写的API，都是完全开放的，也就是说任何人都可以对API发起请求，服务器也会返回相应的响应。这一节，我们将对API的接入进行一定的限定，要求注册用户才能使用API。  
 
 ## 认证方式
@@ -1065,6 +1074,9 @@ urlpatterns = format_suffix_patterns([
   "created_by": 4
 }
 ```
+
+## 补遗：对polls/apiviw.py与apiviewsets.py的整理
+前文中，拷贝了polls/apiviw.py，在其基础上编写了polls/apiviewsets.py。在新的进度中，将使用视图集的视图都放在了polls/apiviewsets.py，其它的API视图放在了polls/apiviw.py，删除了重复的代码。读者大可不必这么做。  
 
 ## 项目代码
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b6  
