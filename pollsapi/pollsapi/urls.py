@@ -16,9 +16,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from rest_framework_swagger.views import get_swagger_view
+from rest_framework.documentation import include_docs_urls
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
     path('api-polls/', include('polls.urls')),
     path('api-user-access-control/', include('useraccesscontrol.urls')),
+
+    path('swagger-docs/', get_swagger_view(title='Polls API')),
+    path('docs/', include_docs_urls(title='Polls API', authentication_classes=[], permission_classes=[])),
 ]

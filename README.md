@@ -1083,6 +1083,99 @@ urlpatterns = format_suffix_patterns([
 注意：本项目中，使用的数据是PostgreSQL，但Django默认的是SQLite3，读者下载使用代码时，应当根据自己环境的实际情况在settings.py中配置数据库。 
 
 
+# Step-7：生成API文档
+## 内容提要
+* 使用django-rest-swagger生成API文档
+* 使用coreapi生成API文档
+
+在前后端配合开发中，上游须要制定开发文档，供下游人员使用。一般而言，上游为后端开发者，下游为前端或其他端开发者。而API的制定、更新、共享，靠纯手工显然是难以接受的，在开活动中，很容易产生扯皮、等待等问题。所以我们须要自动化地生成文档。  
+
+## 使用django-rest-swagger生成API文档
+安装django-rest-swagger
+```bash
+$ pip install django-rest-swagger
+```
+在settings.py中添加相关第三方应用
+```python
+# in settings.py
+
+# Application definition
+
+REST_FRAMEWORK_APPS = [
+    'rest_framework',  #
+    'rest_framework.authtoken',  # 认证应用
+
+    'rest_framework_swagger',  # API文档应用 ==>用于生成文档的应用
+]
+
+CUSTOM_APPS = [
+    ... ...
+]
+
+INSTALLED_APPS = [
+    ... ...
+]\
+                 + REST_FRAMEWORK_APPS\
+                 + CUSTOM_APPS
+```
+配置url分发，
+```python
+# in pollsapi.py
+
+from django.contrib import admin
+from django.urls import path, include
+
+from rest_framework_swagger.views import get_swagger_view
+
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+
+    path('api-polls/', include('polls.urls')),
+    path('api-user-access-control/', include('useraccesscontrol.urls')),
+
+    path('swagger-docs/', get_swagger_view(title='Polls API')),
+]
+```
+现在，可以启动开发服务器，查看API文档页面了。注意，由于有些API我们设置了认证和权限，所以须要登录查看，可以在页面中按须登录。  
+
+![查看API文档](img/10.png)  
+
+![登录API文档页](img/09.png)
+
+
+## 使用django-rest-swagger生成API文档
+安装django-rest-swagger
+```bash
+$ pip install coreapi
+```
+coreapi不须要在settings.py中添加相关第三方应用。  
+
+配置url分发，  
+```python
+# in pollsapi.py
+
+from django.contrib import admin
+from django.urls import path, include
+
+from rest_framework_swagger.views import get_swagger_view
+from rest_framework.documentation import include_docs_urls
+
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+
+    path('api-polls/', include('polls.urls')),
+    path('api-user-access-control/', include('useraccesscontrol.urls')),
+
+    path('swagger-docs/', get_swagger_view(title='Polls API')),
+    path('docs/', include_docs_urls(title='Polls API', authentication_classes=[], permission_classes=[])),
+]
+```
+现在，可以启动开发服务器，查看API文档页面了。注意，我们使用authentication_classes=[], permission_classes=[]豁免了认证和权限。    
+
+![查看API文档](img/11.png)
+
 # Step-last：后记
 ## 系列文章风格
 系列文章会以低零基础、手把手、逐行解释、连续完整的风格进行写作。

@@ -33,6 +33,8 @@ ALLOWED_HOSTS = ['*']
 REST_FRAMEWORK_APPS = [
     'rest_framework',  #
     'rest_framework.authtoken',  # 认证应用
+
+    'rest_framework_swagger',  # API文档应用
 ]
 
 CUSTOM_APPS = [
