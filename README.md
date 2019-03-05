@@ -1139,9 +1139,9 @@ urlpatterns = [
 ```
 现在，可以启动开发服务器，查看API文档页面了。注意，由于有些API我们设置了认证和权限，所以须要登录查看，可以在页面中按须登录。  
 
-![查看API文档](img/10.png)  
+![查看API文档](img/10.PNG)  
 
-![登录API文档页](img/09.png)
+![登录API文档页](img/09.PNG)
 
 
 ## 使用django-rest-swagger生成API文档
@@ -1174,7 +1174,7 @@ urlpatterns = [
 ```
 现在，可以启动开发服务器，查看API文档页面了。注意，我们使用authentication_classes=[], permission_classes=[]豁免了认证和权限。    
 
-![查看API文档](img/11.png)
+![查看API文档](img/11.PNG)
 
 ## 项目代码
 截至目前的项目代码见于https://github.com/Runython/restify_django_tutorial/tree/b7  
