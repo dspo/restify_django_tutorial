@@ -1075,15 +1075,15 @@ urlpatterns = format_suffix_patterns([
 }
 ```
 
-## 补遗：对polls/apiviw.py与apiviewsets.py的整理
-前文中，拷贝了polls/apiviw.py，在其基础上编写了polls/apiviewsets.py。在新的进度中，将使用视图集的视图都放在了polls/apiviewsets.py，其它的API视图放在了polls/apiviw.py，删除了重复的代码。读者大可不必这么做。  
+## 补遗：对polls/apiview.py与apiviewsets.py的整理
+前文中，拷贝了polls/apiview.py，在其基础上编写了polls/apiviewsets.py。在新的进度中，将使用视图集的视图都放在了polls/apiviewsets.py，其它的API视图放在了polls/apiview.py，删除了重复的代码。读者大可不必这么做。  
 
 ## 项目代码
 目前为止的项目代码可见于https://gitee.com/pythonista/rest_django_tutorial/tree/b6  
 注意：本项目中，使用的数据是PostgreSQL，但Django默认的是SQLite3，读者下载使用代码时，应当根据自己环境的实际情况在settings.py中配置数据库。 
 
 
-# Step-7：生成API文档
+# Step-8：生成API文档
 ## 内容提要
 * 使用django-rest-swagger生成API文档
 * 使用coreapi生成API文档
@@ -1176,6 +1176,35 @@ urlpatterns = [
 
 ![查看API文档](img/11.PNG)
 
+## 补遗
+项目中使用的数据库为PostgreSQL，Django默认的是SQLite3，settings.py中配置如下：
+```python
+# in settings.py
+
+# Database
+# https://docs.djangoproject.com/en/2.1/ref/settings/#databases
+
+# 使用SQLite3
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
+
+# 使用PostgreSQL
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'django_rest',
+        'USER': 'webdev',
+        'PASSWORD': '5411',
+        'HOST': '127.0.0.1',
+        'PORT': '5432'
+    }
+}
+```
+
 ## 项目代码
 截至目前的项目代码见于https://github.com/Runython/restify_django_tutorial/tree/b7  
 
@@ -1183,10 +1212,10 @@ urlpatterns = [
 # Step-last：后记
 ## 系列文章风格
 系列文章会以低零基础、手把手、逐行解释、连续完整的风格进行写作。
-* 低零基础：降低文章阅读门槛，使接触Python Web开发时间较短的读者也能有所收获。本人本职是从事数据开发与数据挖掘，所以对低零基础深有体会。
-* 手把手：一些基础操作，也会说明。如本文中，包括安装库等操作也会进行说明。
-* 逐行解释：对代码进行解释，以白居易写诗风格为目标（传说白居易会把自己的诗解释给街头妇人，直到连不懂文化的妇人也能明白，完成创作）。
-* 连续完整：连续是指，文章是成系列的，上文下文之间是有着联系的，项目是连续的。代码托管也体现了这一点，不同的文章，对应不同的git标签或分支，也体现了不同的进度。完整是指，项目是完整的，文章也是完整的。文章可以当作博文来读，也可以当作教程来读。
+* 低零基础：降低文章阅读门槛，使接触Python Web开发时间较短的读者也能有所收获。本人本职是从事数据开发与数据挖掘，所以对低零基础深有体会。  
+* 手把手：一些基础操作，也会说明。如本文中，包括安装库等操作也会进行说明。  
+* 逐行解释：对代码进行解释，以白居易写诗风格为目标（传说白居易会把自己的诗解释给街头妇人，直到连不懂文化的妇人也能明白，完成创作）。  
+* 连续完整：连续是指，文章是成系列的，上文下文之间是有着联系的，项目是连续的。代码托管也体现了这一点，不同的文章，对应不同的git标签或分支，也体现了不同的进度。完整是指，项目是完整的，文章也是完整的。文章可以当作博文来读，也可以当作教程来读。  
 
 
 ## 文章列表
@@ -1194,7 +1223,9 @@ urlpatterns = [
 https://zhuanlan.zhihu.com/p/54776124
 * Python构建RESTful网络服务[Django篇：基于函数视图的API]：https://zhuanlan.zhihu.com/p/55562891
 * Python构建RESTful网络服务[Django篇：使用PostgreSQL替代SQLite]（选读）：https://zhuanlan.zhihu.com/p/55903530
-* Python构建RESTful网络服务[Django篇：基于类视图的API]：https://zhuanlan.zhihu.com/p/57024322
+* Python构建RESTful网络服务[Django篇：基于类视图的API]：https://zhuanlan.zhihu.com/p/57024322  
+* Python构建RESTful网络服务[Django篇：基于视图集的API]：https://zhuanlan.zhihu.com/p/57791697  
+* Python构建RESTful网络服务[Django篇：用户接入控制，认证与权限]：https://zhuanlan.zhihu.com/p/58426061
 ## 参考文献
 Hillar G C. Building RESTful Python Web Services[J]. Birmingham, UK: Packt Publishing Ltd, 2016.
 
