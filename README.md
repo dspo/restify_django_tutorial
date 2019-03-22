@@ -1428,6 +1428,11 @@ class TestPoll(APITestCase):
 ```
 运行测试，不出意外的话测试成功。
 
+
+## 项目代码
+截至目前的项目代码见于https://github.com/Runython/restify_django_tutorial/tree/b8  
+
+
 # Step-last：后记
 ## 系列文章风格
 系列文章会以低零基础、手把手、逐行解释、连续完整的风格进行写作。
